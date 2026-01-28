@@ -8,21 +8,20 @@
     <p>{{ resumen.fecha_actual.strftime('%A, %d de %B %Y') }}</p>
 </header>
 
-<!-- Balance Total -->
-<section class="grid">
+<!-- Balance Total y Flujos en una fila -->
+<section class="summary-grid">
+    <!-- Balance Total -->
     <article class="balance-card">
         <header>Balance Total</header>
         <h2 class="{{ 'positivo' if resumen.balance_total >= 0 else 'negativo' }}">
             {{ resumen.balance_total | moneda }}
         </h2>
         <footer>
-            <small>Suma de todas las cuentas activas</small>
+            <small>Todas las cuentas activas</small>
         </footer>
     </article>
-</section>
 
-<!-- Flujo Semanal y Mensual -->
-<section class="grid">
+    <!-- Flujo Semanal -->
     <article>
         <header>Esta Semana</header>
         <div class="flujo-detalle">
@@ -41,6 +40,7 @@
         </div>
     </article>
 
+    <!-- Flujo Mensual -->
     <article>
         <header>Este Mes</header>
         <div class="flujo-detalle">
@@ -58,22 +58,28 @@
             </div>
         </div>
         <footer>
-            <small>Tasa de ahorro: {{ "%.1f" | format(resumen.tasa_ahorro_mes) }}%</small>
+            <small>Ahorro: {{ "%.1f" | format(resumen.tasa_ahorro_mes) }}%</small>
         </footer>
     </article>
 </section>
 
-<!-- Gráficos -->
-<section class="grid">
+<!-- Gráficos en dos columnas -->
+<section class="charts-grid">
+    <!-- Tendencia -->
     <article>
         <header>Tendencia (8 semanas)</header>
-        <canvas id="chart-tendencia"></canvas>
+        <div class="chart-container">
+            <canvas id="chart-tendencia"></canvas>
+        </div>
     </article>
 
+    <!-- Top Gastos -->
     <article>
         <header>Top Gastos del Mes</header>
         {% if resumen.top_gastos_mes %}
-            <canvas id="chart-gastos"></canvas>
+            <div class="chart-container chart-container-small">
+                <canvas id="chart-gastos"></canvas>
+            </div>
             <ul class="lista-gastos">
                 {% for gasto in resumen.top_gastos_mes %}
                 <li>
@@ -85,15 +91,19 @@
                 {% endfor %}
             </ul>
         {% else %}
-            <p>No hay gastos registrados este mes</p>
+            <p class="text-small">No hay gastos registrados este mes</p>
         {% endif %}
     </article>
 </section>
 
-<!-- Cuentas -->
-<section>
-    <article>
-        <header>Cuentas</header>
+<!-- Secciones colapsables -->
+
+<!-- Cuentas (colapsable) -->
+<div class="collapsible">
+    <button class="collapsible-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        Cuentas ({{ resumen.cuentas | length }})
+    </button>
+    <div class="collapsible-content">
         <table>
             <thead>
                 <tr>
@@ -106,7 +116,7 @@
                 {% for cuenta in resumen.cuentas %}
                 <tr>
                     <td>{{ cuenta.nombre }}</td>
-                    <td>{{ cuenta.tipo | capitalize }}</td>
+                    <td>{{ cuenta.tipo | replace('_', ' ') | capitalize }}</td>
                     <td class="{{ 'positivo' if cuenta.saldo >= 0 else 'negativo' }}">
                         {{ cuenta.saldo | moneda }}
                     </td>
@@ -114,24 +124,28 @@
                 {% endfor %}
             </tbody>
         </table>
-    </article>
-</section>
+    </div>
+</div>
 
-<!-- Proyección -->
-<section>
-    <article>
-        <header>Proyeccion (proximas 4 semanas)</header>
+<!-- Proyección (colapsable) -->
+<div class="collapsible">
+    <button class="collapsible-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        Proyeccion (proximas 4 semanas)
+    </button>
+    <div class="collapsible-content">
         {% if resumen.proyeccion %}
-            <canvas id="chart-proyeccion"></canvas>
+            <div class="chart-container">
+                <canvas id="chart-proyeccion"></canvas>
+            </div>
         {% else %}
-            <p>No hay datos suficientes para proyectar</p>
+            <p class="text-small">No hay datos suficientes para proyectar</p>
         {% endif %}
-    </article>
-</section>
+    </div>
+</div>
 
 <!-- Acciones Rápidas -->
 <section class="acciones-rapidas">
-    <a href="{{ url_for('movimientos.nuevo') }}" role="button">+ Nuevo Movimiento</a>
+    <a href="{{ url_for('movimientos.nuevo') }}" role="button" class="compact">+ Nuevo Movimiento</a>
 </section>
 {% endblock %}
 
@@ -141,6 +155,21 @@
 const tendenciaData = {{ resumen.tendencia | tojson }};
 const gastosData = {{ resumen.top_gastos_mes | tojson }};
 const proyeccionData = {{ resumen.proyeccion | tojson }};
+
+// Opciones comunes para gráficos compactos
+const opcionesCompactas = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+        legend: {
+            position: 'bottom',
+            labels: {
+                boxWidth: 12,
+                font: { size: 11 }
+            }
+        }
+    }
+};
 
 // Gráfico de tendencia
 if (tendenciaData.length > 0) {
@@ -154,24 +183,31 @@ if (tendenciaData.length > 0) {
                     data: tendenciaData.map(d => d.ingresos),
                     borderColor: '#28a745',
                     backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                    tension: 0.3
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointRadius: 3
                 },
                 {
                     label: 'Gastos',
                     data: tendenciaData.map(d => d.gastos),
                     borderColor: '#dc3545',
                     backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                    tension: 0.3
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointRadius: 3
                 }
             ]
         },
         options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'bottom' }
-            },
+            ...opcionesCompactas,
             scales: {
-                y: { beginAtZero: true }
+                y: {
+                    beginAtZero: true,
+                    ticks: { font: { size: 10 } }
+                },
+                x: {
+                    ticks: { font: { size: 10 } }
+                }
             }
         }
     });
@@ -185,14 +221,16 @@ if (gastosData.length > 0) {
             labels: gastosData.map(d => d.nombre),
             datasets: [{
                 data: gastosData.map(d => d.total),
-                backgroundColor: gastosData.map(d => d.color)
+                backgroundColor: gastosData.map(d => d.color),
+                borderWidth: 1
             }]
         },
         options: {
-            responsive: true,
+            ...opcionesCompactas,
             plugins: {
                 legend: { display: false }
-            }
+            },
+            cutout: '60%'
         }
     });
 }
@@ -206,13 +244,18 @@ if (proyeccionData.length > 0) {
             datasets: [{
                 label: 'Balance Proyectado',
                 data: proyeccionData.map(d => d.balance),
-                backgroundColor: proyeccionData.map(d => d.balance >= 0 ? '#28a745' : '#dc3545')
+                backgroundColor: proyeccionData.map(d => d.balance >= 0 ? '#28a745' : '#dc3545'),
+                borderRadius: 4
             }]
         },
         options: {
-            responsive: true,
+            ...opcionesCompactas,
             plugins: {
                 legend: { display: false }
+            },
+            scales: {
+                y: { ticks: { font: { size: 10 } } },
+                x: { ticks: { font: { size: 10 } } }
             }
         }
     });

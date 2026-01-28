@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Movimientos - Finanzas Personales{% endblock %}
+
+{% block content %}
+<header>
+    <h1>Movimientos</h1>
+    <a href="{{ url_for('movimientos.nuevo') }}" role="button">+ Nuevo</a>
+</header>
+
+<!-- Filtros -->
+<details>
+    <summary>Filtros</summary>
+    <form method="get" class="grid">
+        <label>
+            Desde
+            <input type="date" name="desde" value="{{ filtros.get('desde', '') }}">
+        </label>
+        <label>
+            Hasta
+            <input type="date" name="hasta" value="{{ filtros.get('hasta', '') }}">
+        </label>
+        <label>
+            Categoria
+            <select name="categoria">
+                <option value="">Todas</option>
+                {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {{ 'selected' if filtros.get('categoria') == cat.id|string }}>
+                        {{ cat.icono or '' }} {{ cat.nombre }} ({{ cat.tipo }})
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            Cuenta
+            <select name="cuenta">
+                <option value="">Todas</option>
+                {% for cta in cuentas %}
+                    <option value="{{ cta.id }}" {{ 'selected' if filtros.get('cuenta') == cta.id|string }}>
+                        {{ cta.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            Tipo
+            <select name="tipo">
+                <option value="">Todos</option>
+                <option value="ingreso" {{ 'selected' if filtros.get('tipo') == 'ingreso' }}>Ingresos</option>
+                <option value="gasto" {{ 'selected' if filtros.get('tipo') == 'gasto' }}>Gastos</option>
+            </select>
+        </label>
+        <div>
+            <button type="submit">Filtrar</button>
+            <a href="{{ url_for('movimientos.listar') }}" role="button" class="secondary">Limpiar</a>
+        </div>
+    </form>
+</details>
+
+<!-- Lista de movimientos -->
+{% if movimientos %}
+<table>
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Descripcion</th>
+            <th>Categoria</th>
+            <th>Cuenta</th>
+            <th>Monto</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for mov in movimientos %}
+        <tr>
+            <td>{{ mov.fecha | fecha_corta }}</td>
+            <td>{{ mov.descripcion or '-' }}</td>
+            <td>
+                <span class="categoria-badge" style="background-color: {{ mov.categoria.color }}20; color: {{ mov.categoria.color }}">
+                    {{ mov.categoria.icono or '' }} {{ mov.categoria.nombre }}
+                </span>
+            </td>
+            <td>{{ mov.cuenta.nombre }}</td>
+            <td class="{{ 'positivo' if mov.es_ingreso else 'negativo' }}">
+                {{ ('+' if mov.es_ingreso else '-') }}{{ mov.monto | moneda }}
+            </td>
+            <td>
+                <a href="{{ url_for('movimientos.editar', id=mov.id) }}">Editar</a>
+                <form method="post" action="{{ url_for('movimientos.eliminar', id=mov.id) }}" style="display: inline;">
+                    <button type="submit" class="secondary outline" onclick="return confirm('Eliminar este movimiento?')">
+                        Eliminar
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<article>
+    <p>No hay movimientos registrados{% if filtros %} con los filtros seleccionados{% endif %}.</p>
+    <a href="{{ url_for('movimientos.nuevo') }}" role="button">Registrar primer movimiento</a>
+</article>
+{% endif %}
+{% endblock %}

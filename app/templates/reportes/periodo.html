@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte por Periodo - Finanzas Personales{% endblock %}
+
+{% block content %}
+<header>
+    <h1>Reporte por Periodo</h1>
+</header>
+
+<!-- Selector de período -->
+<article>
+    <form method="get" class="grid">
+        <label>
+            Desde
+            <input type="date" name="desde" value="{{ fecha_desde or '' }}" required>
+        </label>
+        <label>
+            Hasta
+            <input type="date" name="hasta" value="{{ fecha_hasta or '' }}" required>
+        </label>
+        <div style="align-self: end;">
+            <button type="submit">Generar Reporte</button>
+        </div>
+    </form>
+</article>
+
+{% if datos %}
+<!-- Resumen del Flujo -->
+<section class="grid">
+    <article>
+        <header>Resumen del Periodo</header>
+        <div class="flujo-detalle">
+            <div class="ingreso">
+                <small>Total Ingresos</small>
+                <strong>{{ datos.flujo.ingresos | moneda }}</strong>
+            </div>
+            <div class="gasto">
+                <small>Total Gastos</small>
+                <strong>{{ datos.flujo.gastos | moneda }}</strong>
+            </div>
+            <div class="neto {{ 'positivo' if datos.flujo.neto >= 0 else 'negativo' }}">
+                <small>Balance Neto</small>
+                <strong>{{ datos.flujo.neto | moneda }}</strong>
+            </div>
+        </div>
+        <footer>
+            <small>Tasa de ahorro: {{ "%.1f" | format(datos.tasa_ahorro) }}%</small>
+        </footer>
+    </article>
+</section>
+
+<!-- Gráficos y Detalles -->
+<section class="grid">
+    <!-- Gastos por categoría -->
+    <article>
+        <header>Gastos por Categoria</header>
+        {% if datos.gastos_categoria %}
+            <canvas id="chart-gastos-periodo"></canvas>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Categoria</th>
+                        <th>Total</th>
+                        <th>%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set total_gastos = datos.flujo.gastos %}
+                    {% for gasto in datos.gastos_categoria %}
+                    <tr>
+                        <td>
+                            <span class="categoria-color" style="background-color: {{ gasto.color }}"></span>
+                            {{ gasto.icono or '' }} {{ gasto.nombre }}
+                        </td>
+                        <td>{{ gasto.total | moneda }}</td>
+                        <td>{{ "%.1f" | format((gasto.total / total_gastos * 100) if total_gastos > 0 else 0) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No hay gastos en este periodo</p>
+        {% endif %}
+    </article>
+
+    <!-- Ingresos por categoría -->
+    <article>
+        <header>Ingresos por Categoria</header>
+        {% if datos.ingresos_categoria %}
+            <canvas id="chart-ingresos-periodo"></canvas>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Categoria</th>
+                        <th>Total</th>
+                        <th>%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set total_ingresos = datos.flujo.ingresos %}
+                    {% for ingreso in datos.ingresos_categoria %}
+                    <tr>
+                        <td>
+                            <span class="categoria-color" style="background-color: {{ ingreso.color }}"></span>
+                            {{ ingreso.icono or '' }} {{ ingreso.nombre }}
+                        </td>
+                        <td>{{ ingreso.total | moneda }}</td>
+                        <td>{{ "%.1f" | format((ingreso.total / total_ingresos * 100) if total_ingresos > 0 else 0) }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No hay ingresos en este periodo</p>
+        {% endif %}
+    </article>
+</section>
+
+{% else %}
+<article>
+    <p>Selecciona un rango de fechas para generar el reporte.</p>
+</article>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if datos %}
+<script>
+const gastosData = {{ datos.gastos_categoria | tojson }};
+const ingresosData = {{ datos.ingresos_categoria | tojson }};
+
+// Gráfico de gastos
+if (gastosData.length > 0) {
+    new Chart(document.getElementById('chart-gastos-periodo'), {
+        type: 'pie',
+        data: {
+            labels: gastosData.map(d => d.nombre),
+            datasets: [{
+                data: gastosData.map(d => d.total),
+                backgroundColor: gastosData.map(d => d.color)
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+// Gráfico de ingresos
+if (ingresosData.length > 0) {
+    new Chart(document.getElementById('chart-ingresos-periodo'), {
+        type: 'pie',
+        data: {
+            labels: ingresosData.map(d => d.nombre),
+            datasets: [{
+                data: ingresosData.map(d => d.total),
+                backgroundColor: ingresosData.map(d => d.color)
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Categorias - Finanzas Personales{% endblock %}
+
+{% block content %}
+<header>
+    <h1>Categorias</h1>
+    <a href="{{ url_for('categorias.nueva') }}" role="button">+ Nueva</a>
+</header>
+
+<div class="grid">
+    <!-- Ingresos -->
+    <article>
+        <header>Ingresos</header>
+        {% if categorias_ingreso %}
+        <ul class="lista-categorias">
+            {% for cat in categorias_ingreso %}
+            <li class="{{ '' if cat.activa else 'inactiva' }}">
+                <span class="categoria-color" style="background-color: {{ cat.color }}"></span>
+                <span class="icono">{{ cat.icono or '' }}</span>
+                <span class="nombre">{{ cat.nombre }}</span>
+                <span class="acciones">
+                    <a href="{{ url_for('categorias.editar', id=cat.id) }}">Editar</a>
+                    <form method="post" action="{{ url_for('categorias.toggle_activa', id=cat.id) }}" style="display: inline;">
+                        <button type="submit" class="secondary outline small">
+                            {{ 'Desactivar' if cat.activa else 'Activar' }}
+                        </button>
+                    </form>
+                </span>
+                {% if cat.subcategorias.count() > 0 %}
+                <ul class="subcategorias">
+                    {% for sub in cat.subcategorias %}
+                    <li class="{{ '' if sub.activa else 'inactiva' }}">
+                        <span class="categoria-color" style="background-color: {{ sub.color }}"></span>
+                        <span class="icono">{{ sub.icono or '' }}</span>
+                        <span class="nombre">{{ sub.nombre }}</span>
+                        <a href="{{ url_for('categorias.editar', id=sub.id) }}">Editar</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No hay categorias de ingreso</p>
+        {% endif %}
+    </article>
+
+    <!-- Gastos -->
+    <article>
+        <header>Gastos</header>
+        {% if categorias_gasto %}
+        <ul class="lista-categorias">
+            {% for cat in categorias_gasto %}
+            <li class="{{ '' if cat.activa else 'inactiva' }}">
+                <span class="categoria-color" style="background-color: {{ cat.color }}"></span>
+                <span class="icono">{{ cat.icono or '' }}</span>
+                <span class="nombre">{{ cat.nombre }}</span>
+                <span class="acciones">
+                    <a href="{{ url_for('categorias.editar', id=cat.id) }}">Editar</a>
+                    <form method="post" action="{{ url_for('categorias.toggle_activa', id=cat.id) }}" style="display: inline;">
+                        <button type="submit" class="secondary outline small">
+                            {{ 'Desactivar' if cat.activa else 'Activar' }}
+                        </button>
+                    </form>
+                </span>
+                {% if cat.subcategorias.count() > 0 %}
+                <ul class="subcategorias">
+                    {% for sub in cat.subcategorias %}
+                    <li class="{{ '' if sub.activa else 'inactiva' }}">
+                        <span class="categoria-color" style="background-color: {{ sub.color }}"></span>
+                        <span class="icono">{{ sub.icono or '' }}</span>
+                        <span class="nombre">{{ sub.nombre }}</span>
+                        <a href="{{ url_for('categorias.editar', id=sub.id) }}">Editar</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No hay categorias de gasto</p>
+        {% endif %}
+    </article>
+</div>
+{% endblock %}

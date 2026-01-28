@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Finanzas Personales{% endblock %}
+
+{% block content %}
+<header>
+    <h1>Revision Semanal</h1>
+    <p>{{ resumen.fecha_actual.strftime('%A, %d de %B %Y') }}</p>
+</header>
+
+<!-- Balance Total -->
+<section class="grid">
+    <article class="balance-card">
+        <header>Balance Total</header>
+        <h2 class="{{ 'positivo' if resumen.balance_total >= 0 else 'negativo' }}">
+            {{ resumen.balance_total | moneda }}
+        </h2>
+        <footer>
+            <small>Suma de todas las cuentas activas</small>
+        </footer>
+    </article>
+</section>
+
+<!-- Flujo Semanal y Mensual -->
+<section class="grid">
+    <article>
+        <header>Esta Semana</header>
+        <div class="flujo-detalle">
+            <div class="ingreso">
+                <small>Ingresos</small>
+                <strong>{{ resumen.flujo_semana.ingresos | moneda }}</strong>
+            </div>
+            <div class="gasto">
+                <small>Gastos</small>
+                <strong>{{ resumen.flujo_semana.gastos | moneda }}</strong>
+            </div>
+            <div class="neto {{ 'positivo' if resumen.flujo_semana.neto >= 0 else 'negativo' }}">
+                <small>Neto</small>
+                <strong>{{ resumen.flujo_semana.neto | moneda }}</strong>
+            </div>
+        </div>
+    </article>
+
+    <article>
+        <header>Este Mes</header>
+        <div class="flujo-detalle">
+            <div class="ingreso">
+                <small>Ingresos</small>
+                <strong>{{ resumen.flujo_mes.ingresos | moneda }}</strong>
+            </div>
+            <div class="gasto">
+                <small>Gastos</small>
+                <strong>{{ resumen.flujo_mes.gastos | moneda }}</strong>
+            </div>
+            <div class="neto {{ 'positivo' if resumen.flujo_mes.neto >= 0 else 'negativo' }}">
+                <small>Neto</small>
+                <strong>{{ resumen.flujo_mes.neto | moneda }}</strong>
+            </div>
+        </div>
+        <footer>
+            <small>Tasa de ahorro: {{ "%.1f" | format(resumen.tasa_ahorro_mes) }}%</small>
+        </footer>
+    </article>
+</section>
+
+<!-- Gráficos -->
+<section class="grid">
+    <article>
+        <header>Tendencia (8 semanas)</header>
+        <canvas id="chart-tendencia"></canvas>
+    </article>
+
+    <article>
+        <header>Top Gastos del Mes</header>
+        {% if resumen.top_gastos_mes %}
+            <canvas id="chart-gastos"></canvas>
+            <ul class="lista-gastos">
+                {% for gasto in resumen.top_gastos_mes %}
+                <li>
+                    <span class="categoria-color" style="background-color: {{ gasto.color }}"></span>
+                    <span class="icono">{{ gasto.icono or '' }}</span>
+                    <span class="nombre">{{ gasto.nombre }}</span>
+                    <span class="monto">{{ gasto.total | moneda }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No hay gastos registrados este mes</p>
+        {% endif %}
+    </article>
+</section>
+
+<!-- Cuentas -->
+<section>
+    <article>
+        <header>Cuentas</header>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cuenta</th>
+                    <th>Tipo</th>
+                    <th>Saldo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cuenta in resumen.cuentas %}
+                <tr>
+                    <td>{{ cuenta.nombre }}</td>
+                    <td>{{ cuenta.tipo | capitalize }}</td>
+                    <td class="{{ 'positivo' if cuenta.saldo >= 0 else 'negativo' }}">
+                        {{ cuenta.saldo | moneda }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </article>
+</section>
+
+<!-- Proyección -->
+<section>
+    <article>
+        <header>Proyeccion (proximas 4 semanas)</header>
+        {% if resumen.proyeccion %}
+            <canvas id="chart-proyeccion"></canvas>
+        {% else %}
+            <p>No hay datos suficientes para proyectar</p>
+        {% endif %}
+    </article>
+</section>
+
+<!-- Acciones Rápidas -->
+<section class="acciones-rapidas">
+    <a href="{{ url_for('movimientos.nuevo') }}" role="button">+ Nuevo Movimiento</a>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Datos para gráficos
+const tendenciaData = {{ resumen.tendencia | tojson }};
+const gastosData = {{ resumen.top_gastos_mes | tojson }};
+const proyeccionData = {{ resumen.proyeccion | tojson }};
+
+// Gráfico de tendencia
+if (tendenciaData.length > 0) {
+    new Chart(document.getElementById('chart-tendencia'), {
+        type: 'line',
+        data: {
+            labels: tendenciaData.map(d => d.semana),
+            datasets: [
+                {
+                    label: 'Ingresos',
+                    data: tendenciaData.map(d => d.ingresos),
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    tension: 0.3
+                },
+                {
+                    label: 'Gastos',
+                    data: tendenciaData.map(d => d.gastos),
+                    borderColor: '#dc3545',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+// Gráfico de gastos por categoría
+if (gastosData.length > 0) {
+    new Chart(document.getElementById('chart-gastos'), {
+        type: 'doughnut',
+        data: {
+            labels: gastosData.map(d => d.nombre),
+            datasets: [{
+                data: gastosData.map(d => d.total),
+                backgroundColor: gastosData.map(d => d.color)
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
+// Gráfico de proyección
+if (proyeccionData.length > 0) {
+    new Chart(document.getElementById('chart-proyeccion'), {
+        type: 'bar',
+        data: {
+            labels: proyeccionData.map(d => d.semana),
+            datasets: [{
+                label: 'Balance Proyectado',
+                data: proyeccionData.map(d => d.balance),
+                backgroundColor: proyeccionData.map(d => d.balance >= 0 ? '#28a745' : '#dc3545')
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,252 @@
+/* Estilos personalizados para Finanzas Personales */
+
+/* Variables de colores */
+:root {
+    --color-positivo: #28a745;
+    --color-negativo: #dc3545;
+    --color-neutro: #6c757d;
+}
+
+/* Clases de utilidad para montos */
+.positivo {
+    color: var(--color-positivo);
+}
+
+.negativo {
+    color: var(--color-negativo);
+}
+
+/* Balance card */
+.balance-card {
+    text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.balance-card header {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.balance-card h2 {
+    font-size: 2.5rem;
+    margin: 1rem 0;
+}
+
+.balance-card h2.positivo {
+    color: #90EE90;
+}
+
+.balance-card h2.negativo {
+    color: #FFB6C1;
+}
+
+.balance-card footer {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Flujo detalle */
+.flujo-detalle {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.flujo-detalle > div {
+    padding: 0.5rem;
+}
+
+.flujo-detalle small {
+    display: block;
+    color: var(--color-neutro);
+    margin-bottom: 0.25rem;
+}
+
+.flujo-detalle strong {
+    font-size: 1.25rem;
+}
+
+.flujo-detalle .ingreso strong {
+    color: var(--color-positivo);
+}
+
+.flujo-detalle .gasto strong {
+    color: var(--color-negativo);
+}
+
+/* Lista de gastos del dashboard */
+.lista-gastos {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0 0;
+}
+
+.lista-gastos li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.lista-gastos li:last-child {
+    border-bottom: none;
+}
+
+.lista-gastos .nombre {
+    flex: 1;
+}
+
+.lista-gastos .monto {
+    font-weight: 600;
+}
+
+/* Color indicator */
+.categoria-color {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Categoria badge */
+.categoria-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+/* Lista de categorías */
+.lista-categorias {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.lista-categorias > li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.lista-categorias > li:last-child {
+    border-bottom: none;
+}
+
+.lista-categorias .nombre {
+    flex: 1;
+}
+
+.lista-categorias .acciones {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.lista-categorias .inactiva {
+    opacity: 0.5;
+}
+
+.lista-categorias .subcategorias {
+    width: 100%;
+    list-style: none;
+    padding-left: 2rem;
+    margin: 0.5rem 0 0 0;
+}
+
+.lista-categorias .subcategorias li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+/* Botones pequeños */
+button.small,
+.small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* Mensajes flash */
+.flash-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-left: 4px solid var(--color-positivo);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.flash-error {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-left: 4px solid var(--color-negativo);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Acciones rápidas */
+.acciones-rapidas {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* Header con acciones */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+header h1 {
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .flujo-detalle {
+        grid-template-columns: 1fr;
+    }
+
+    .flujo-detalle strong {
+        font-size: 1.1rem;
+    }
+
+    .balance-card h2 {
+        font-size: 2rem;
+    }
+}
+
+/* Tablas responsivas */
+table {
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    table {
+        font-size: 0.8rem;
+    }
+
+    table th,
+    table td {
+        padding: 0.5rem 0.25rem;
+    }
+}
+
+/* Footer */
+footer.container {
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid var(--pico-muted-border-color);
+}

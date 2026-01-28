@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if categoria else 'Nueva' }} Categoria - Finanzas Personales{% endblock %}
+
+{% block content %}
+<header>
+    <h1>{{ 'Editar' if categoria else 'Nueva' }} Categoria</h1>
+</header>
+
+<article>
+    <form method="post">
+        <label>
+            Nombre *
+            <input type="text" name="nombre"
+                   value="{{ categoria.nombre if categoria else '' }}"
+                   placeholder="Nombre de la categoria" required>
+        </label>
+
+        <div class="grid">
+            <label>
+                Tipo *
+                <select name="tipo" required>
+                    <option value="gasto" {{ 'selected' if categoria and categoria.tipo == 'gasto' }}>Gasto</option>
+                    <option value="ingreso" {{ 'selected' if categoria and categoria.tipo == 'ingreso' }}>Ingreso</option>
+                </select>
+            </label>
+            <label>
+                Categoria padre
+                <select name="padre_id">
+                    <option value="">Ninguna (categoria principal)</option>
+                    {% for cat in categorias_padre %}
+                        <option value="{{ cat.id }}"
+                                {{ 'selected' if categoria and categoria.padre_id == cat.id }}>
+                            {{ cat.nombre }} ({{ cat.tipo }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+
+        <div class="grid">
+            <label>
+                Color
+                <input type="color" name="color"
+                       value="{{ categoria.color if categoria else '#6c757d' }}">
+            </label>
+            <label>
+                Icono (emoji)
+                <input type="text" name="icono"
+                       value="{{ categoria.icono or '' if categoria else '' }}"
+                       placeholder="Ej: 🍽️" maxlength="10">
+            </label>
+        </div>
+
+        {% if categoria %}
+        <label>
+            <input type="checkbox" name="activa" {{ 'checked' if categoria.activa }}>
+            Categoria activa
+        </label>
+        {% endif %}
+
+        <div class="grid">
+            <button type="submit">{{ 'Actualizar' if categoria else 'Crear' }}</button>
+            <a href="{{ url_for('categorias.listar') }}" role="button" class="secondary">Cancelar</a>
+        </div>
+    </form>
+</article>
+{% endblock %}

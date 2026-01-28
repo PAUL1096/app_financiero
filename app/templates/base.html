@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Finanzas Personales{% endblock %}</title>
+
+    <!-- Pico CSS - Framework minimalista -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <nav class="container">
+        <ul>
+            <li><strong>Finanzas</strong></li>
+        </ul>
+        <ul>
+            <li><a href="{{ url_for('reportes.dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('movimientos.listar') }}">Movimientos</a></li>
+            <li><a href="{{ url_for('categorias.listar') }}">Categorias</a></li>
+            <li><a href="{{ url_for('reportes.reporte_periodo') }}">Reportes</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <!-- Mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <article class="flash-{{ category }}">
+                        {{ message }}
+                    </article>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="container">
+        <small>Finanzas Personales - Revision Semanal</small>
+    </footer>
+
+    <!-- Scripts personalizados -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

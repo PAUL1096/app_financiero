@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if movimiento else 'Nuevo' }} Movimiento - Finanzas Personales{% endblock %}
+
+{% block content %}
+<header>
+    <h1>{{ 'Editar' if movimiento else 'Nuevo' }} Movimiento</h1>
+</header>
+
+<article>
+    <form method="post">
+        <div class="grid">
+            <label>
+                Fecha *
+                <input type="date" name="fecha" value="{{ fecha_default }}" required>
+            </label>
+            <label>
+                Monto *
+                <input type="number" name="monto" step="0.01" min="0.01"
+                       value="{{ movimiento.monto if movimiento else '' }}"
+                       placeholder="0.00" required>
+            </label>
+        </div>
+
+        <div class="grid">
+            <label>
+                Categoria *
+                <select name="categoria_id" required>
+                    <option value="">Seleccionar categoria</option>
+                    <optgroup label="Ingresos">
+                        {% for cat in categorias if cat.tipo == 'ingreso' %}
+                            <option value="{{ cat.id }}"
+                                    {{ 'selected' if movimiento and movimiento.categoria_id == cat.id }}>
+                                {{ cat.icono or '' }} {{ cat.nombre }}
+                            </option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup label="Gastos">
+                        {% for cat in categorias if cat.tipo == 'gasto' %}
+                            <option value="{{ cat.id }}"
+                                    {{ 'selected' if movimiento and movimiento.categoria_id == cat.id }}>
+                                {{ cat.icono or '' }} {{ cat.nombre }}
+                            </option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+            </label>
+            <label>
+                Cuenta *
+                <select name="cuenta_id" required>
+                    <option value="">Seleccionar cuenta</option>
+                    {% for cta in cuentas %}
+                        <option value="{{ cta.id }}"
+                                {{ 'selected' if movimiento and movimiento.cuenta_id == cta.id }}>
+                            {{ cta.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+
+        <label>
+            Descripcion
+            <input type="text" name="descripcion"
+                   value="{{ movimiento.descripcion or '' if movimiento else '' }}"
+                   placeholder="Descripcion breve del movimiento">
+        </label>
+
+        <label>
+            Etiquetas
+            <input type="text" name="etiquetas"
+                   value="{{ movimiento.etiquetas | join(', ') if movimiento and movimiento.etiquetas else '' }}"
+                   placeholder="Separadas por comas (ej: urgente, recurrente)">
+        </label>
+
+        <label>
+            Notas
+            <textarea name="notas" placeholder="Notas adicionales">{{ movimiento.notas or '' if movimiento else '' }}</textarea>
+        </label>
+
+        <div class="grid">
+            <button type="submit">{{ 'Actualizar' if movimiento else 'Guardar' }}</button>
+            <a href="{{ url_for('movimientos.listar') }}" role="button" class="secondary">Cancelar</a>
+        </div>
+    </form>
+</article>
+{% endblock %}
